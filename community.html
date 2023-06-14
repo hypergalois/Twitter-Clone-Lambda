@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:300i,400,700&display=swap" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <script>
+      // aqui solo tenemos que mostrar todos los tweets ultimos
+
+        $( document ).ready(function() {
+            user_id = 7;
+
+          // obtenemos avatar, nombre y username para lo de abajo
+          function setCurrentUser(name, username, avatar) {
+              // funcion lambda para obtenerlo, mandamos el id user que tenemos en la session storage
+              // lo obtenemos, pongo ejemplo
+              // name = "Miguel Gutierrez"
+              // username = "jbguti"
+              // avatarUrl = urlbucket + avatar
+              // avatar = "https://lh6.googleusercontent.com/-UYKv4Oo4AL4/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3reOcBoiruxfuiRHs8VAoE-HvgnBDw/mo/photo.jpg?sz=256"
+              document.getElementById("avatarCurrent").src = avatar;
+              document.getElementById("nameCurrent").innerHTML = name;
+              document.getElementById("usernameCurrent").innerHTML = "@" + username;
+            }
+          // obtenemos avatar, username y nombre con lambda
+          var asd = $.get("https://hwy2szwnylumliyhj7yjuhwe2q0vpeki.lambda-url.us-east-1.on.aws/",
+                {method: "obtain", id_user: user_id},
+                function(data) {
+                    function jsonEscape(str) {
+                        return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g,"");
+                    }
+
+                    var json = data;
+                    alert("page content: " + JSON.stringify(json));
+                    // vamos a guardar la variable user id
+                    // "nombre\": \"Indio Solarium Rodriguez\", \"username\": \"indiosolari\", \"avatar\": \"fotitottt\"
+                    nombre = json.nombre;
+                    username = json.username;
+                    avatar = json.avatar;
+                    setCurrentUser(nombre, username, avatar);
+                }
+            )
+
+            // aqui tenemos el texto y el datetime
+            // dataTweet = {}
+            // aqui tenemos el nombre, username y avatar
+            // dataUser = {}
+            var urlBucket = "https://jdelgadowhatever.s3.amazonaws.com/";
+            var nombre = "";
+            var username = "";
+            var avatar = "";
+
+
+            class PlainTweet {
+              constructor(name, username, datetime, text, avatar, user_id, tweet_id) {
+                this.name = name;
+                this.username = username;
+                this.datetime = datetime;
+                this.text = text;
+                this.avatar = urlBucket + avatar;
+                this.user_id = user_id;
+                this.tweet_id = tweet_id;
+              }
+
+              render() {
+                return `
+                <div class="card d-flex">
+            <div class="avatar-wrap">
+              <img class="avatar--large" src="${this.avatar}" alt="Avatar">
+            </div>
+            <div class="card-body">
+              <div class="card-intro"></div>
+              <div class="card-header">
+                <span class="username">${this.name}</span>
+                <div class="icon-wrap--small">
+                  <svg viewBox="0 0 24 24" aria-label="Verified account" class="fill-primary">
+                    <g>
+                      <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path>
+                    </g>
+                  </svg>
+                </div>
+                <span class="user-hash">@${this.username}</span>
+                <span class="dot-separator">&middot;</span>
+                <span class="post-time">${this.datetime}</span>
+                <!-- <div class="button-wrap--small f-right">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z"></path>
+                      </g>
+                    </svg>
+                  </div> -->
+              </div>
+              <div class="card-content">
+                <div class="card-content--text">
+                  ${this.text}
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="card-footer__button-group">
+                  <div class="button-wrap--medium">
+                      <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'comments'); ">
+                        <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                          <g>
+                            <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path>
+                          </g>
+                        </svg>
+                      </button>
+                    <!-- <span class="button-count">15</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'retweet'); ">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <!-- <span class="button-count">7</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'like'); ">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <!-- <span class="button-count">215</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'bookmark'); ">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          `;
+          }
+        }
+
+
+        class ImageTweet {
+              constructor(name, username, datetime, text, avatar, user_id, tweet_id, adjunto) {
+                this.name = name;
+                this.username = username;
+                this.datetime = datetime;
+                this.text = text;
+                this.avatar = urlBucket + avatar;
+                this.user_id = user_id;
+                this.tweet_id = tweet_id;
+                this.adjunto = urlBucket + adjunto;
+              }
+
+              render() {
+                return `
+                <div class="card d-flex">
+            <div class="avatar-wrap">
+              <img class="avatar--large" src="${this.avatar}" alt="Avatar">
+            </div>
+            <div class="card-body">
+              <div class="card-intro"></div>
+              <div class="card-header">
+                <span class="username">${this.name}</span>
+                <div class="icon-wrap--small">
+                  <svg viewBox="0 0 24 24" aria-label="Verified account" class="fill-primary">
+                    <g>
+                      <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path>
+                    </g>
+                  </svg>
+                </div>
+                <span class="user-hash">@${this.username}</span>
+                <span class="dot-separator">&middot;</span>
+                <span class="post-time">${this.datetime}</span>
+                <!-- <div class="button-wrap--small f-right">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z"></path>
+                      </g>
+                    </svg>
+                  </div> -->
+              </div>
+              <div class="card-content">
+                <div class="card-content--text">
+                  ${this.text}
+                </div>
+                <div class="card-content mt-9">
+                    <img class="card-content--image" src="${this.adjunto}" alt="Vote">
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="card-footer__button-group">
+                  <div class="button-wrap--medium">
+                      <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'comments'); ">
+                        <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                          <g>
+                            <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path>
+                          </g>
+                        </svg>
+                      </button>
+                    <!-- <span class="button-count">15</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'retweet'); ">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <!-- <span class="button-count">7</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'like'); ">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <!-- <span class="button-count">215</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'bookmark'); ">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          `;
+          }
+        }
+
+
+        class VideoTweet {
+              constructor(name, username, datetime, text, avatar, user_id, tweet_id, adjunto) {
+                this.name = name;
+                this.username = username;
+                this.datetime = datetime;
+                this.text = text;
+                this.avatar = urlBucket + avatar;
+                this.user_id = user_id;
+                this.tweet_id = tweet_id;
+                this.adjunto = urlBucket + adjunto;
+              }
+
+              render() {
+                return `
+                <div class="card d-flex">
+            <div class="avatar-wrap">
+              <img class="avatar--large" src="${this.avatar}" alt="Avatar">
+            </div>
+            <div class="card-body">
+              <div class="card-intro"></div>
+              <div class="card-header">
+                <span class="username">${this.name}</span>
+                <div class="icon-wrap--small">
+                  <svg viewBox="0 0 24 24" aria-label="Verified account" class="fill-primary">
+                    <g>
+                      <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path>
+                    </g>
+                  </svg>
+                </div>
+                <span class="user-hash">@${this.username}</span>
+                <span class="dot-separator">&middot;</span>
+                <span class="post-time">${this.datetime}</span>
+                <!-- <div class="button-wrap--small f-right">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z"></path>
+                      </g>
+                    </svg>
+                  </div> -->
+              </div>
+              <div class="card-content">
+                <div class="card-content--text">
+                  ${this.text}
+                </div>
+                <div class="card-content mt-9">
+                    <video class="card-content--image" src="${this.adjunto}" controls></video>
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="card-footer__button-group">
+                  <div class="button-wrap--medium">
+                      <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'comments'); ">
+                        <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                          <g>
+                            <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path>
+                          </g>
+                        </svg>
+                      </button>
+                    <!-- <span class="button-count">15</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'retweet'); ">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <!-- <span class="button-count">7</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'like'); ">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <!-- <span class="button-count">215</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'bookmark'); ">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          `;
+          }
+        }
+
+        // aqui conseguiremos los datos para el perfil
+            // tenemos una funcion para obtener los datos del perfil y otra para obtener los tweets, dentro de esta sera donde hagamos los tweets
+            // desde aqui ya tendremos en session storage una variable de id
+            var asd = $.get("https://vyiko3vnebl7zkop654ygzuet40djpgz.lambda-url.us-east-1.on.aws/",
+                {method: "obtain", id_user: "3"},
+                function(data) {
+                    function jsonEscape(str) {
+                        return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g,"");
+                    }
+
+                    var json = data;
+                    alert("page content: " + JSON.stringify(json));
+                    // vamos a guardar la variable user id
+                    // "nombre\": \"Indio Solarium Rodriguez\", \"username\": \"indiosolari\", \"avatar\": \"fotitottt\"
+                    nombre = json.nombre;
+                    username = json.username;
+                    avatar = json.avatar;
+                }
+            )
+
+            // una vez que este hecha esa funcion vamos con la de obtener tweets
+            var asd2 = $.get("https://am6k6ujlbffrcv72bwgmtuzcfi0fxeiz.lambda-url.us-east-1.on.aws/",
+                {method: "obtain", id_user: "3"},
+                function(data) {
+                    function jsonEscape(str) {
+                        return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g,"");
+                    }
+                    // aqui tendremos la respuesta y pondremos los tweets
+                    var json = data;
+                    alert("page content: " + JSON.stringify(json));
+                    // console.log(json[0].tweet) 
+                    length = json.length;
+                    // console.log(length)
+                    // console.log(json[i])
+
+                    for(var i = 0; i < length; i++) {
+                        var newDiv = document.createElement("div");
+                        newDiv.setAttribute("id", "tweet-" + i)
+                        document.getElementById("tweets").appendChild(newDiv);
+                        if(json[i].tipo == "texto") {
+                            var myTweet = new PlainTweet(nombre, username, json[i].timestamp, json[i].tweet, avatar, "3", json[i].id_tweet);
+                            document.getElementById("tweet-" + i).innerHTML = myTweet.render();
+                        } else if(json[i].tipo == "foto") {
+                            var myTweet = new ImageTweet(nombre, username, json[i].timestamp, json[i].tweet, avatar, "3", json[i].id_tweet, json[i].adjunto);
+                            document.getElementById("tweet-" + i).innerHTML = myTweet.render();
+                        } else if(json[i].tipo == "video") {
+                            var myTweet = new VideoTweet(nombre, username, json[i].timestamp, json[i].tweet, avatar, "3", json[i].id_tweet, json[i].adjunto);
+                            document.getElementById("tweet-" + i).innerHTML = myTweet.render();
+                        }
+                    }
+                }
+            )
+
+        
+
+    });
+    </script>
+</head>
+<body>
+    <div class="app-container">
+
+        <header class="main-header">
+            <div class="main-avatar-wrap">
+              <img class="avatar avatar--medium" src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Michael_Jordan_in_2014.jpg" alt="Avatar">
+            </div>
+            <h1>Home</h1>
+          </header>
+
+
+
+        <aside class="main-nav-wrap">
+          
+          <nav class="main-nav-extended">
+            <div class="main-nav-section">
+              <div class="button-wrap--large mb-6 ml-10">
+                <svg viewBox="0 0 24 24" class="button-icon fill-primary">
+                  <g>
+                    <path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path>
+                  </g>
+                </svg>
+              </div>
+      
+              <ul class="main-nav-extended-list">
+                <button id="button-hidden" onclick="document.location.replace('home.html')">
+                  <li class="nav-item buttonable">
+                    <div class="button-wrap--large unread-sign">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-primary">
+                        <g>
+                          <path d="M22.58 7.35L12.475 1.897c-.297-.16-.654-.16-.95 0L1.425 7.35c-.486.264-.667.87-.405 1.356.18.335.525.525.88.525.16 0 .324-.038.475-.12l.734-.396 1.59 11.25c.216 1.214 1.31 2.062 2.66 2.062h9.282c1.35 0 2.444-.848 2.662-2.088l1.588-11.225.737.398c.485.263 1.092.082 1.354-.404.263-.486.08-1.093-.404-1.355zM12 15.435c-1.795 0-3.25-1.455-3.25-3.25s1.455-3.25 3.25-3.25 3.25 1.455 3.25 3.25-1.455 3.25-3.25 3.25z"></path>
+                        </g>
+                      </svg>
+                    </div>
+                    <span class="text-xlarge text-bold pr-10">Home</span>
+                  </li>
+                </button>
+      
+
+                <button id="button-hidden" onclick="document.location.replace('#')">
+                  <li class="nav-item buttonable">
+                    <div class="button-wrap--large">
+                      <svg class="button-icon fill-primary" viewBox="0 0 24 24" class="" style="fill: black;">
+                        <g>
+                          <path d="M22.772 10.506l-5.618-2.192-2.16-6.5c-.102-.307-.39-.514-.712-.514s-.61.207-.712.513l-2.16 6.5-5.62 2.192c-.287.112-.477.39-.477.7s.19.585.478.698l5.62 2.192 2.16 6.5c.102.306.39.513.712.513s.61-.207.712-.513l2.16-6.5 5.62-2.192c.287-.112.477-.39.477-.7s-.19-.585-.478-.697zm-6.49 2.32c-.208.08-.37.25-.44.46l-1.56 4.695-1.56-4.693c-.07-.21-.23-.38-.438-.462l-4.155-1.62 4.154-1.622c.208-.08.37-.25.44-.462l1.56-4.693 1.56 4.694c.07.212.23.382.438.463l4.155 1.62-4.155 1.622zM6.663 3.812h-1.88V2.05c0-.414-.337-.75-.75-.75s-.75.336-.75.75v1.762H1.5c-.414 0-.75.336-.75.75s.336.75.75.75h1.782v1.762c0 .414.336.75.75.75s.75-.336.75-.75V5.312h1.88c.415 0 .75-.336.75-.75s-.335-.75-.75-.75zm2.535 15.622h-1.1v-1.016c0-.414-.335-.75-.75-.75s-.75.336-.75.75v1.016H5.57c-.414 0-.75.336-.75.75s.336.75.75.75H6.6v1.016c0 .414.335.75.75.75s.75-.336.75-.75v-1.016h1.098c.414 0 .75-.336.75-.75s-.336-.75-.75-.75z"></path>
+                        </g>
+                      </svg>
+                    </div>
+                    <span class="text-xlarge text-bold pr-10">Community</span>
+        
+                  </li>
+                </button>
+
+                <button id="button-hidden" onclick="document.location.replace('explore.html')">
+                  <li class="nav-item buttonable">
+                    <div class="button-wrap--large">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-primary-text">
+                        <g>
+                          <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
+                        </g>
+                      </svg>
+                    </div>
+                    <span class="text-xlarge text-bold pr-10">Explore</span>
+        
+                  </li>
+                </button>
+      
+                <button id="button-hidden" onclick="document.location.replace('bookmarks.html')">
+                  <li class="nav-item buttonable">
+                    <div class="button-wrap--large">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-primary-text">
+                        <g>
+                          <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
+                        </g>
+                      </svg>
+                    </div>
+                    <span class="text-xlarge text-bold pr-10">Bookmarks</span>
+                  </li>
+                </button>
+      
+                <button id="button-hidden" onclick="document.location.replace('profile.html')">
+                  <li class="nav-item buttonable">
+                    <div class="button-wrap--large">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-primary-text">
+                        <g>
+                          <path d="M12 11.816c1.355 0 2.872-.15 3.84-1.256.814-.93 1.078-2.368.806-4.392-.38-2.825-2.117-4.512-4.646-4.512S7.734 3.343 7.354 6.17c-.272 2.022-.008 3.46.806 4.39.968 1.107 2.485 1.256 3.84 1.256zM8.84 6.368c.162-1.2.787-3.212 3.16-3.212s2.998 2.013 3.16 3.212c.207 1.55.057 2.627-.45 3.205-.455.52-1.266.743-2.71.743s-2.255-.223-2.71-.743c-.507-.578-.657-1.656-.45-3.205zm11.44 12.868c-.877-3.526-4.282-5.99-8.28-5.99s-7.403 2.464-8.28 5.99c-.172.692-.028 1.4.395 1.94.408.52 1.04.82 1.733.82h12.304c.693 0 1.325-.3 1.733-.82.424-.54.567-1.247.394-1.94zm-1.576 1.016c-.126.16-.316.246-.552.246H5.848c-.235 0-.426-.085-.552-.246-.137-.174-.18-.412-.12-.654.71-2.855 3.517-4.85 6.824-4.85s6.114 1.994 6.824 4.85c.06.242.017.48-.12.654z"></path>
+                        </g>
+                      </svg>
+                    </div>
+                    <span class="text-xlarge text-bold pr-10">Profile</span>
+                  </li>
+                </button>
+
+              </ul>
+      
+              <button class="button--large button-filled text-bold mt-10" onclick="document.location.replace('tweet.html')">Tweet</button>
+              <button class="button--large button-filled-red text-bold mt-10" onclick="document.location.replace('logout.html')">Log out</button>
+            </div>
+            <!-- aqui va el perfil -->
+            <div class="main-nav-footer buttonable">
+              <div class="main-avatar-wrap">
+                <img id="avatarCurrent" class="avatar avatar--medium" src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Michael_Jordan_in_2014.jpg" alt="Avatar">
+              </div>
+              <div class="follow-suggest-content ml-10">
+                <h4 class="follow-name" id="nameCurrent" onclick="document.location.replace('profile.html')">Michael Jordan</h4>
+                <span class="follow-name-hash" id="usernameCurrent">@MichaelJordan</span>
+              </div>
+            </div>
+          </nav>
+        </aside>
+
+
+
+        <main class="main-content" id="tweets">
+      
+          <!--  Tweet 1    -->
+          <div class="card d-flex">
+            <div class="avatar-wrap">
+              <img class="avatar--large" src="https://theundefeated.com/wp-content/uploads/2017/06/nbalogo.jpg?w=1024" alt="Avatar">
+            </div>
+            <div class="card-body">
+              <div class="card-intro"></div>
+              <div class="card-header">
+                <span class="username">NBA</span>
+                <div class="icon-wrap--small">
+                  <svg viewBox="0 0 24 24" aria-label="Verified account" class="fill-primary">
+                    <g>
+                      <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path>
+                    </g>
+                  </svg>
+                </div>
+                <span class="user-hash">@NBA</span>
+                <span class="dot-separator">&middot;</span>
+                <span class="post-time">22m</span>
+                <!-- <div class="button-wrap--small f-right">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z"></path>
+                      </g>
+                    </svg>
+                  </div> -->
+              </div>
+              <div class="card-content">
+                <div class="card-content--text">
+                  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sed aut officia delectus accusantium at porro autem? Ratione, quidem perferendis, illo molestias inventore reiciendis voluptatum nihil, porro officia eius sint aliquam!
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="card-footer__button-group">
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <!-- <span class="button-count">15</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <!-- <span class="button-count">7</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <!-- <span class="button-count">215</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <button id="button-hidden">
+                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                        <g>
+                          <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
+                        </g>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!--  Tweet 1  CON IMAGEN  -->
+          <div class="card d-flex">
+            <div class="avatar-wrap">
+              <img class="avatar--large" src="https://theundefeated.com/wp-content/uploads/2017/06/nbalogo.jpg?w=1024" alt="Avatar">
+            </div>
+            <div class="card-body">
+              <div class="card-intro"></div>
+              <div class="card-header">
+                <span class="username">IMAGEN</span>
+                <div class="icon-wrap--small">
+                  <svg viewBox="0 0 24 24" aria-label="Verified account" class="fill-primary">
+                    <g>
+                      <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path>
+                    </g>
+                  </svg>
+                </div>
+                <span class="user-hash">@NBA</span>
+                <span class="dot-separator">&middot;</span>
+                <span class="post-time">22m</span>
+                <!-- <div class="button-wrap--small f-right">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z"></path>
+                      </g>
+                    </svg>
+                  </div> -->
+              </div>
+              <div class="card-content">
+                <div class="card-content--text">
+                  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sed aut officia delectus accusantium at porro autem? Ratione, quidem perferendis, illo molestias inventore reiciendis voluptatum nihil, porro officia eius sint aliquam!
+                </div>
+                <div class="card-content mt-9">
+                    <img class="card-content--image" src="https://www.nydailynews.com/resizer/fVTVTeEvP4Sk0RddAmSBcaqFcEw=/800x533/top/cloudfront-us-east-1.images.arcpublishing.com/tronc/A3PW246LI5H57PD3L22XKOJVQU.jpg" alt="Vote">
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="card-footer__button-group">
+                  <div class="button-wrap--medium">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path>
+                      </g>
+                    </svg>
+                    <!-- <span class="button-count">15</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path>
+                      </g>
+                    </svg>
+                    <!-- <span class="button-count">7</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path>
+                      </g>
+                    </svg>
+                    <!-- <span class="button-count">215</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!--  Tweet 1    -->
+          <div class="card d-flex">
+            <div class="avatar-wrap">
+              <img class="avatar--large" src="https://theundefeated.com/wp-content/uploads/2017/06/nbalogo.jpg?w=1024" alt="Avatar">
+            </div>
+            <div class="card-body">
+              <div class="card-intro"></div>
+              <div class="card-header">
+                <span class="username">VIDEO</span>
+                <div class="icon-wrap--small">
+                  <svg viewBox="0 0 24 24" aria-label="Verified account" class="fill-primary">
+                    <g>
+                      <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z"></path>
+                    </g>
+                  </svg>
+                </div>
+                <span class="user-hash">@NBA</span>
+                <span class="dot-separator">&middot;</span>
+                <span class="post-time">22m</span>
+                <!-- <div class="button-wrap--small f-right">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M20.207 8.147c-.39-.39-1.023-.39-1.414 0L12 14.94 5.207 8.147c-.39-.39-1.023-.39-1.414 0-.39.39-.39 1.023 0 1.414l7.5 7.5c.195.196.45.294.707.294s.512-.098.707-.293l7.5-7.5c.39-.39.39-1.022 0-1.413z"></path>
+                      </g>
+                    </svg>
+                  </div> -->
+              </div>
+              <div class="card-content">
+                <div class="card-content--text">
+                  Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sed aut officia delectus accusantium at porro autem? Ratione, quidem perferendis, illo molestias inventore reiciendis voluptatum nihil, porro officia eius sint aliquam!
+                </div>
+                <div class="card-content mt-9">
+                    <video class="card-content--image" src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" controls></video>
+                </div>
+              </div>
+              <div class="card-footer">
+                <div class="card-footer__button-group">
+                  <div class="button-wrap--medium">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path>
+                      </g>
+                    </svg>
+                    <!-- <span class="button-count">15</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path>
+                      </g>
+                    </svg>
+                    <!-- <span class="button-count">7</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path>
+                      </g>
+                    </svg>
+                    <!-- <span class="button-count">215</span> -->
+                  </div>
+                  <div class="button-wrap--medium">
+                    <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                      <g>
+                        <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="space"></div>
+        </main>
+        
+        <footer class="main-footer">
+
+        </footer>
+      </div>
+</body>
+</html>
