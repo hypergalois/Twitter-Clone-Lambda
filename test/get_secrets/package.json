@@ -1,0 +1,15 @@
+{
+  "name": "get_secrets",
+  "version": "1.0.0",
+  "description": "",
+  "main": "get_secrets.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.357.0",
+    "aws-sdk": "^2.1403.0"
+  }
+}

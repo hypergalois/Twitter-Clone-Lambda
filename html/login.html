@@ -1,189 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOGIN</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOGIN</title>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:300i,400,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:300i,400,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../style/login.css">
 
-    <style type="text/css">
-        body{
-        font-family: "Nunito Sans";
-        }
-        .container{
-            margin-top: 8%;
-        }
-        .login-form{
-        padding: 25px;
-        }
-        h3{
-        padding-left:30px;
-        padding-right: 20px;
-        font-weight: 700;
-        }
-        label{
-        padding-top: 4px;
-        padding-left: 4px;
-        }
-        .bg-color{
-        background-color:rgb(245, 248, 250);
-        }
-        .bg-color:hover label{
-        color:#31a1f2;
-        }
-        .btn-custom{
-        background-color: #1877f2;
-        border: none;
-        border-radius: 6px;
-        font-size: 20px;
-        line-height: 28px;
-        color: #fff;
-        font-weight:700;
-        height: 48px;
-        }
-        .btn-custom{
-        color: #fff !important;
-        background-color: rgb(29, 161, 242);
-        }
-        .form-control{
-        border:0px;
-        background-color: rgb(245, 248, 250);
-        border-bottom: 2px solid #657786;
-        padding: 0px 4px 0px 4px;
-        min-height: 20px;
-        }
-        .form-control:focus{
-        box-shadow: none;
-        background-color: rgb(245, 248, 250);
-        border-color: #31a1f2;
-        }
-        .fa{
-        color: rgb(29, 161, 242);
-        margin: 0 auto;
-        display: block;
-        text-align: center;
-        font-size: 50px;
-        }
-        a{
-        text-decoration: none;
-        color: rgb(27, 149, 224);
-        }
-        a:hover{
-        text-decoration: underline;
-        color: rgb(27, 149, 224);
-        }
-        button:hover{
-            background-color: rgba(29, 160, 242, 0.612);
-        }
-      </style>
 
-    <script>
-        $(document).ready(function() {
-            sessionStorage.setItem("triesRemaining", 3);
-            // console.log("Hola");
-            $("button").click(function(){
-                // console.log("Hola desde el boton");
-                var varUser = document.getElementById("user").value;
-                var varPassword = document.getElementById("password").value;
-                // console.log(varUser);
-                // console.log(varPassword);
-                var result = "ok";
-                var user_id = 1;
-                var wrong = ""
+  <script>
+    $(document).ready(function() {
+      // Ponemos 3 intentos
+      sessionStorage.setItem('triesRemaining', 3)
+      $('button').click(function() {
+        const user = $('#user').val()
+        const password = $('#password').val()
+        var result = ''
+        var id_user = ''
+        var error = ''
 
-                var asd = $.get("https://otkagf4xwuadc54ll7zysfgzmy0oatfj.lambda-url.us-east-1.on.aws/",
-                    {method: "login", user: varUser, password : varPassword},
-                    function(data) {
-                        function jsonEscape(str) {
-                            return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g,"");
-                        }
+        var asd = $.get(
+          'https://g5hyb33ge6cfjgfhsuism4q4ym0gonxc.lambda-url.us-east-1.on.aws/', 
+          {
+            method: 'login',
+            user: user,
+            password: password
+          },
+          function(data) {
+            function jsonEscape(str) {
+              return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
+            }
 
-                        var json = data;
-                        // alert("page content: " + JSON.stringify(json));
-                        // vamos a guardar la variable user id
-                        result = json.res;
-                        user_id = json.user_id;
-                        wrong = json.wrong;
-                    }
-                ).done(function() {
-                    if(result == "ok") {
-                        alert("Bienvenido a Twitter");
-                        sessionStorage.setItem("triesRemaining", 3);
-                        sessionStorage.setItem("username", varUser);
-                        sessionStorage.setItem("user_id", user_id);
-                        window.location.replace("home.html");
-                    } else if(result == "fail") {
-                        if(wrong == "user") {
-                            alert("Ese usuario no existe");
-                            // alert("vuelve a intentarlo")
-                        } else if(wrong == "password") {
-                            alert("La contraseña está mal");
-                            sessionStorage.setItem("triesRemaining", sessionStorage.getItem("triesRemaining")-1);
-                            alert("Solo te quedan " + sessionStorage.getItem("triesRemaining") + "intentos");
+            var json = data
+            result = json.res
+            id_user = json.user_id
+            error = json.error
+          }
+        ).done(function() {
+          if (result == 'ok') {
+            alert('Bienvenido a Twitter')
+            sessionStorage.setItem('triesRemaining', 3)
+            sessionStorage.setItem('username', user)
+            sessionStorage.setItem('id_user', id_user)
+            window.location.replace('home.html')
+          } else if (result == 'fail') {
+            if (error == 'userNotExists') {
+              alert('Ese usuario no existe.')
+            } else if (error == 'passwordWrong') {
+              alert('La contraseña está mal.')
+              sessionStorage.setItem('triesRemaining', sessionStorage.getItem('triesRemaining') - 1)
 
-                            if(sessionStorage.getItem("triesRemaining") == 1) {
-                                // la proxima vez que falles te borraremos la cuenta
-                                alert("La próxima vez que falles te borraremos la cuenta");
-                            }
-                            if(sessionStorage.getItem("triesRemaining") == 0) {
-                                // cuenta borrada
-                                alert("Tu cuenta ha sido borrada");
-                                // aqui reseteamos los tries para no irnos con 0
-                                sessionStorage.setItem("triesRemaining", 3);
-                                sessionStorage.setItem("username", varUser);
-                                window.location.replace("deleteaccount.html");
-                            }
-                        }
-                    }
-                })
-            });
-        });
-    </script>
+              const triesRemaining = sessionStorage.getItem('triesRemaining')
+
+              switch (triesRemaining) {
+                case 1:
+                  alert('La próxima vez que falles tu cuenta será eliminada.')
+                  break
+                case 0:
+                  alert('Tu cuenta ha sido eliminada.')
+                  sessionStorage.setItem('triesRemaining', 3)
+                  sessionStorage.setItem('username', user)
+                  window.location.replace('deleteaccount.html')
+                  break
+                default:
+                  alert('Solo te quedan ' + triesRemaining + ' intentos')
+                  break
+              }
+
+            }
+          }
+        })
+
+      })
+    })
+  </script>
 
 </head>
+
 <body>
-    <!-- <h1>LOGIN</h1>
-    <label >username:</label>
-    <input type="text" id="user" name="user"><br><br>
-    <label >password:</label>
-    <input type="password" id="password" name="password"><br><br>
-    <button>log into twitter</button>
-    <br><br>
-    <a href="signup.html">SIGN UP</a>
-    <br>
-    <a href="forgotpassword.html">FORGOT PASSWORD</a> -->
-
-
-    <div class="container">
-        <div class="row">
-          <div class="col-md-3"></div>
-          <div class="col-md-6 p-0 pt-3">
-            <i class="fa fa-twitter"></i>
-            <h3 class="text-center pt-3">Log in to Twitter</h3>
-            <form class="login-form" action="#">
-              <div class="mb-3 bg-color">
-                <label>Username</label>
-                <input type="text" class="form-control" required  id="user" name="user">
-              </div>
-              <div class="mb-3 bg-color">
-                <label>Password</label>
-                <input type="password" class="form-control" required id="password" name="password">
-              </div>
-              <button type="button" class="btn btn-custom btn-lg btn-block mt-3">Log in</button>
-              <div class="text-center pt-3 pb-3">
-                <a href="forgotpassword.html" class="">Forgotten password?</a> . 
-                <a href="signup.html" class="">Sign up for Twitter</a>
-              </div>
-            </form>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-3"></div>
+      <div class="col-md-6 p-0 pt-3">
+        <i class="fa fa-twitter"></i>
+        <h3 class="text-center pt-3">Log in to Twitter</h3>
+        <form class="login-form" action="#">
+          <div class="mb-3 bg-color">
+            <label>Username</label>
+            <input type="text" class="form-control" required id="user" name="user">
           </div>
-          <div class="col-md-3"></div>
-        </div>
+          <div class="mb-3 bg-color">
+            <label>Password</label>
+            <input type="password" class="form-control" required id="password" name="password">
+          </div>
+          <button type="button" class="btn btn-custom btn-lg btn-block mt-3">Log in</button>
+          <div class="text-center pt-3 pb-3">
+            <a href="forgotpassword.html" class="">Forgotten password?</a> .
+            <a href="signup.html" class="">Sign up for Twitter</a>
+          </div>
+        </form>
       </div>
-
+      <div class="col-md-3"></div>
+    </div>
+  </div>
 </body>
+
 </html>
