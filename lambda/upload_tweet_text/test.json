@@ -1,0 +1,6 @@
+{
+    "queryStringParameters": {
+      "user_id": 3,
+      "message": "hola"
+    }
+}

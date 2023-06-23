@@ -6,3 +6,6 @@
 - [ ] Forgot Password Change
 - [ ] Show all tweets
 - [ ] Poner automáticamente los created_at y updated_at
+- [ ] En get_aws_keys obtenerlas de env variables
+- [ ] Actualizar funciones en local que las he cambiado los CORS a las de tweetear en aws
+- [ ] Requests can be base64 encoded

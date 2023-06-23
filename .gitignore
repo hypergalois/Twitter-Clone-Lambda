@@ -1,3 +1,5 @@
 .local.env
 .env
 node_modules/
+pymysql/
+PyMySQL-1.0.3.dist.info/

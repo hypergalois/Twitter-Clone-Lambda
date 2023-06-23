@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload to S3</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">Upload</button>
+
+    <script>
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            // Obtener la URL firmada de la función Lambda
+            $.get('https://your-api-gateway-url', function(response) {
+                const signedUrl = response.body.signed_url;
+                const xAmzDate = response.body.x_amz_date;
+
+                // Subir el archivo a S3
+                const xhr = new XMLHttpRequest();
+                xhr.open('PUT', signedUrl, true);
+                xhr.setRequestHeader('X-Amz-Date', xAmzDate);
+                xhr.send(file);
+            });
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+    "queryStringParameters": {
+      "user_id": 2,
+      "message": "hola",
+      "file_name": "89df8s9hello.png",
+      "file_type": "image"
+    }
+}
