@@ -1,0 +1,6 @@
+{
+    "queryStringParameters": {
+        "username": "user",
+        "recovery_phrase": "frase"
+    }
+}

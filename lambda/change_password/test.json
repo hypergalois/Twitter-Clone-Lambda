@@ -1,0 +1,6 @@
+{
+    "queryStringParameters": {
+      "username": "user",
+      "new_password": "hola"
+    }
+  }
