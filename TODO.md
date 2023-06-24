@@ -9,3 +9,4 @@
 - [ ] En get_aws_keys obtenerlas de env variables
 - [ ] Actualizar funciones en local que las he cambiado los CORS a las de tweetear en aws
 - [ ] Requests can be base64 encoded
+  - [ ] Funcion de obtener avatar y nombre en todas las paginas
