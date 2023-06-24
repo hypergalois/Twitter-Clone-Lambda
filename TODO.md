@@ -9,4 +9,12 @@
 - [ ] En get_aws_keys obtenerlas de env variables
 - [ ] Actualizar funciones en local que las he cambiado los CORS a las de tweetear en aws
 - [ ] Requests can be base64 encoded
-  - [ ] Funcion de obtener avatar y nombre en todas las paginas
+- [ ] Funcion de obtener avatar y nombre en todas las paginas
+- [ ] Max Tweet pasa a ser 255
+- [ ] Ofuscacion de archivos más robusta
+- [ ] Mejorar la deteccion del tipo de archivo
+- [ ] Guardar en base de datos nombre original y subir a s3 nombre ofuscado, determinista, guardar bien claveSecreta
+- [ ] Ofuscacion de nombre en el servidor
+- [ ] Checkear en Session Storage si esta el avatar antes de hacer la peticion
+- [ ] Cambiar iconos barra a azul dependiendo de donde estes
+- [ ] Hacer dropdowns cuando sigas a alguien y des like
