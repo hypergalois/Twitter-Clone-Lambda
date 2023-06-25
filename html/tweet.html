@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Tweet</title>
   <link rel="stylesheet" href="../style/index.css">
   <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:300i,400,700&display=swap" rel="stylesheet">
 
@@ -19,13 +19,14 @@
   <script>
     // Aquí iría la función de obtener avatar y user a partir de id
     var user = 'roberto'
-    var nombre = ''
+    // var user = sessionStorage.getItem('user')
     var user_id = 19
-    var avatar = ''
+    // var user_id = sessionStorage.getItem('user_id')
+    var nombre = sessionStorage.getItem('name')
+    var avatar = sessionStorage.getItem('avatar')
 
     // CLAVE DE ENCRIPTACION PARA LAS OFUSCACIONES
     var claveEncriptacion = 'TGB&4qDg3I1#%H9uLKr'
-
 
     function getAWSKeys() {
       var asd = $.get(
@@ -87,6 +88,7 @@
       }
     }
 
+    // Falta comprobar que el numero total de caracteres del textarea sea menor que 255
     function sendTweet(event) {
       // event.preventDefault()
       // Comprobamos que tenemos texto o imagen, lo minimo para que se pueda subir algo
@@ -144,7 +146,7 @@
 
         // Le sumo la fecha para evitar colisiones, tiene que ser ahora o si no daría horas distintas
         var fileName = document.getElementById("file").value.substring(document.getElementById("file").value.lastIndexOf('\\') + 1)
-        var selectedFile = fileInput.files[0] 
+        var selectedFile = fileInput.files[0]
         var fileType = getFileType(selectedFile)
         var fileNameOfuscated = ofuscarUrl(fileName)
 
@@ -204,7 +206,7 @@
       if (fileInput.files && fileInput.files[0]) {
         var reader = new FileReader()
 
-        reader.onload = function (e) {
+        reader.onload = function(e) {
           // Creamos elemento imagen o video dependiendo
           var media;
           if (fileInput.files[0].type.includes('image')) {
@@ -229,7 +231,7 @@
         }
 
         reader.readAsDataURL(fileInput.files[0])
-        
+
       } else {
         mediaPreview.innerHTML = ''
       }
@@ -237,41 +239,50 @@
 
     // Le añado la fecha para que no haya colisiones
     function ofuscarNombreArchivo(nombreArchivo, clave) {
-      
-        var claveEnBytes = CryptoJS.enc.Utf8.parse(clave);
-        var nombreArchivoEnBytes = CryptoJS.enc.Utf8.parse(nombreArchivo);
-        
-        var encrypted = CryptoJS.AES.encrypt(nombreArchivoEnBytes, claveEnBytes, {
-            mode: CryptoJS.mode.ECB,
-            padding: CryptoJS.pad.Pkcs7
-        });
-        
-        return encrypted.toString();
+
+      var claveEnBytes = CryptoJS.enc.Utf8.parse(clave);
+      var nombreArchivoEnBytes = CryptoJS.enc.Utf8.parse(nombreArchivo);
+
+      var encrypted = CryptoJS.AES.encrypt(nombreArchivoEnBytes, claveEnBytes, {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.Pkcs7
+      });
+
+      return encrypted.toString();
     }
 
     function desofuscarNombreArchivo(nombreOfuscado, clave) {
-        var claveEnBytes = CryptoJS.enc.Utf8.parse(clave);
-        
-        var decrypted = CryptoJS.AES.decrypt(nombreOfuscado, claveEnBytes, {
-            mode: CryptoJS.mode.ECB,
-            padding: CryptoJS.pad.Pkcs7
-        });
-        
-        return decrypted.toString(CryptoJS.enc.Utf8);
+      var claveEnBytes = CryptoJS.enc.Utf8.parse(clave);
+
+      var decrypted = CryptoJS.AES.decrypt(nombreOfuscado, claveEnBytes, {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.Pkcs7
+      });
+
+      return decrypted.toString(CryptoJS.enc.Utf8);
     }
 
     // Deberiamos checkear si esta en sessionStorage antes de hacer la peticion
     function setCurrentUser() {
 
+      // console.log(sessionStorage.getItem('avatar'))
+      // console.log(sessionStorage.getItem('name'))
+
+      if (sessionStorage.getItem('avatar') != null && sessionStorage.getItem('name') != null) {
+        document.getElementById("avatarCurrent").src = avatar;
+        document.getElementById("nameCurrent").innerHTML = nombre;
+        document.getElementById("usernameCurrent").innerHTML = "@" + user;
+        return
+      }
+
       var asd = $.get(
-        'https://g57gbf3yj5pwd3wt27zpa2viwu0ufnwy.lambda-url.us-east-1.on.aws/',
-        {
+        'https://g57gbf3yj5pwd3wt27zpa2viwu0ufnwy.lambda-url.us-east-1.on.aws/', {
           method: 'get_user',
           user_id: user_id
         },
         function(data) {
           function jsonEscape(str) {
-              return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
+            return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
           }
           var json = data
           result = json.res
@@ -286,17 +297,20 @@
           document.getElementById("usernameCurrent").innerHTML = "@" + user;
           // Ponerlos en Session Storage
 
+          sessionStorage.setItem('avatar', avatar)
+          sessionStorage.setItem('name', nombre)
+
         } else if (result == 'fail') {
           alert('Error.')
         }
       })
-      
+
     }
 
     // Aqui lo que se ejecuta siempre, el getCurrentUser puede ir en el body onload
 
     $(document).ready(function() {
-      
+
       setCurrentUser();
 
       $('textarea').keyup(function() {
@@ -304,6 +318,18 @@
         var textChar = $('textarea').val().length
         var charLeft = max - textChar
         $('p').text('Te quedan ' + charLeft + ' caracteres')
+
+        if (charLeft < 0) {
+          $('p').css({
+            'color': 'red',
+            'font-weight': 'bold'
+          })
+        } else {
+          $('p').css({
+            'color': 'black',
+            'font-weight': 'normal'
+          })
+        }
       })
 
     })
@@ -318,7 +344,7 @@
       <div class="main-avatar-wrap">
         <img class="avatar avatar--medium" src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Michael_Jordan_in_2014.jpg" alt="Avatar">
       </div>
-      <h1>Home</h1>
+      <h1>Tweet</h1>
     </header>
 
 

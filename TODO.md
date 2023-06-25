@@ -18,3 +18,5 @@
 - [ ] Checkear en Session Storage si esta el avatar antes de hacer la peticion
 - [ ] Cambiar iconos barra a azul dependiendo de donde estes
 - [ ] Hacer dropdowns cuando sigas a alguien y des like
+- [ ] Falta la UI de responder comments
+- [ ] Poner las URLS como constantes que importamos de un fichero
