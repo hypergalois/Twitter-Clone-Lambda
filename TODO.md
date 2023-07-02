@@ -20,3 +20,5 @@
 - [ ] Hacer dropdowns cuando sigas a alguien y des like
 - [ ] Falta la UI de responder comments
 - [ ] Poner las URLS como constantes que importamos de un fichero
+- [ ] Hay que hacer un trim a los nombres de archivos para no permitir espacios
+- [ ] Para cada usuario crear carpeta appending user_id/ y todo eso meterlo en una carpeta media/ para que quede más ordenado

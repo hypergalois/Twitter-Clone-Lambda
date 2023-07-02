@@ -5,9 +5,12 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Twitter ◦ Profile</title>
+  <link rel="icon" type="image/x-icon" href="https://twitter-clone-utad.s3.amazonaws.com/twitter-icon.png">
   <link rel="stylesheet" href="../style/index.css">
   <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:300i,400,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../style/animations.css">
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
@@ -22,9 +25,14 @@
 
     var urlBucket = 'http://twitter-clone-utad.s3.us-east-1.amazonaws.com/'
 
+
     function setCurrentUser() {
 
       var result = ''
+
+      // Lo vuelvo a obtener dentro, tengo que obtenerlo porque lo de arriba no se ejecuta
+      var avatar = sessionStorage.getItem('avatar')
+      var nombre = sessionStorage.getItem('name')
 
       // console.log(sessionStorage.getItem('avatar'))
       // console.log(sessionStorage.getItem('name'))
@@ -77,10 +85,18 @@
       var length = 0
       var url;
       var type;
+
+      var nombre = sessionStorage.getItem('name')
+      // igual con el user
+      var avatar = sessionStorage.getItem('avatar')
+
+      var urlBucket = 'http://twitter-clone-utad.s3.us-east-1.amazonaws.com/'
+
+      var user_id = sessionStorage.getItem('user_id')
       // Obtenemos tweets y los renderizamos
       // Para cada tweet tendremos que obtener su media si lo tiene
       var asd = $.get(
-        '', {
+        'https://6xdcsxbrrjszmugmkiohpgrj6i0diqub.lambda-url.us-east-1.on.aws/', {
           method: 'get-tweets-profile',
           user_id: user_id
         },
@@ -97,20 +113,28 @@
         // Iteramos por todos los tweets, miramos su attachement_id
         // Null -> TextTweet
         // x -> mandamos peticion -> ImageTweet o VideoTweet
-        for (var i = 0; i < length; i++) {
+
+        alert(length + ' tweets encontrados.')
+        console.log(tweets)
+        for (let i = 0; i < length; i++) {
 
           var newDiv = document.createElement('div')
           newDiv.setAttribute('id', 'tweet-' + i)
           document.getElementById('tweets').appendChild(newDiv)
 
           if (tweets[i].attachment_id == null) {
+            console.log("Creamos tweet " + i + " sin attachment")
+            console.log('iteracion ' + i + '')
+            console.log(nombre, user, tweets[i].created_at, tweets[i].message, avatar, user_id, tweets[i].message_id)
             var myTweet = new PlainTweet(nombre, user, tweets[i].created_at, tweets[i].message, avatar, user_id, tweets[i].message_id)
             document.getElementById('tweet-' + i).innerHTML = myTweet.render()
 
           } else {
+            console.log("Creamos tweet " + i + " con attachment")
+            console.log('iteracion1 ' + i + '')
             // Conseguimos attachment data
             var asd = $.get(
-              '', {
+              'https://izrlvbgc73h7aoakrx2u4b2x740cyyuq.lambda-url.us-east-1.on.aws/', {
                 method: 'get_attachment',
                 attachment_id: tweets[i].attachment_id
               },
@@ -121,17 +145,23 @@
                 var json = data
                 result = json.res
                 // Ojo hay que sumarle la url del bucket para conseguir la url completa
-                url = urlBucket + json.url
-                type = json.type
+                url = urlBucket + json.attachment.url
+                type = json.attachment.type
+                console.log(url, type)
               }
             ).done(function() {
               // Miramos tipo video o image
               if (result == 'ok') {
                 if (type == 'image') {
+                  console.log('image')
+                  console.log('iteracion2 ' + i + '')
+                  console.log(tweets[i])
+                  console.log(nombre, user, tweets[i].created_at, tweets[i].message, avatar, user_id, tweets[i].message_id, url)
                   var myTweet = new ImageTweet(nombre, username, tweets[i].created_at, tweets[i].message, avatar, user_id, tweets[i].message_id, url)
                   document.getElementById("tweet-" + i).innerHTML = myTweet.render()
                 } else if (type == 'video') {
-                  var myTweet = new VideoTweet(nombre, username, tweets[i].created_at, tweets[i].message, avatar, user_id, tweets[i].message_id, url)
+                  console.log('video')
+                  var myTweet = new VideoTweet(nombre, user, tweets[i].created_at, tweets[i].message, avatar, user_id, tweets[i].message_id, url)
                   document.getElementById("tweet-" + i).innerHTML = myTweet.render()
                 }
 
@@ -158,6 +188,22 @@
       var dateProfile;
       var usernameProfile;
       var result;
+
+      // Boton editar vs follow
+      var user_id = sessionStorage.getItem('user_id')
+      var clicked_user_id = sessionStorage.getItem('clicked_user_id')
+
+      // <button id="edit_profile_follow_button" class="button--large button-filled text-bold mt-10 center" onclick="document.location.replace('editprofile.html')">Edit profile/Follow</button>
+
+      if (user_id == clicked_user_id) {
+        // Edit profile
+        document.getElementById('edit_profile_follow_button').innerHTML = 'Edit profile'
+        document.getElementById('edit_profile_follow_button').setAttribute('onclick', 'document.location.replace("editprofile.html")')
+      } else {
+        // Follow
+        document.getElementById('edit_profile_follow_button').innerHTML = 'Follow'
+        document.getElementById('edit_profile_follow_button').setAttribute('onclick', 'handleFollow()')
+      }
 
       var asd = $.get(
         'https://6i7lime5c42iizxg3p6thm4qdi0ebvrk.lambda-url.us-east-1.on.aws/', {
@@ -199,9 +245,118 @@
       setProfileTweets();
     }
 
+    function handleClick() {
+      var tweet_id = sessionStorage.getItem("tweet_id");
+      var clicked = sessionStorage.getItem("clicked");
+      switch (clicked) {
+        case 'comments':
+          console.log(tweet_id, clicked, 'Dentro de comments')
+          handleComments()
+          break;
+        case 'retweet':
+          console.log(tweet_id, clicked, 'Dentro de retweet')
+          handleRetweet()
+          break;
+        case 'like':
+          console.log(tweet_id, clicked, 'Dentro de like')
+          handleLike()
+          break;
+        case 'bookmark':
+          console.log(tweet_id, clicked, 'Dentro de bookmark')
+          handleBookmark()
+          break;
+        default:
+          // code block
+          console.log(tweet_id, clicked, 'Dentro de default')
+      }
+    }
+
+    function handleComments() {
+      // Vamos a pagina para ver los comentarios y publicar comentarios
+      alert('Redirigiendo a comentarios.')
+      document.location.replace('comments.html')
+    }
+
+    function handleRetweet() {
+      alert('Retweet aun no implementado.')
+    }
+
+    function handleBookmark() {
+      // Funcion lambda que hace bookmark y animacion de cambiar el boton
+      // Comprobar si ya le hemos dado a bookmark, habria que obtener más datos para saber si ya le hemos dado a bookmark
+      // Mandamos message_id y user_id
+      var message_id = sessionStorage.getItem('tweet_id')
+      var user_id = sessionStorage.getItem('user_id')
+
+      var asd = $.get(
+        'https://szkm7fowozuqtl6pkfr3a2yqpq0eodso.lambda-url.us-east-1.on.aws/', {
+          method: 'bookmark',
+          message_id: message_id,
+          user_id: user_id
+        },
+        function(data) {
+          function jsonEscape(str) {
+            return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
+          }
+          var json = data
+          result = json.res
+        }
+      ).done(function() {
+        if (result == 'ok') {
+          alert('Tweet añadido a bookmarks.')
+          // Animacion
+
+        } else if (result == 'fail') {
+          alert('Error al añadir tweet a bookmarks.')
+        }
+      })
+    }
+
+    function handleLike() {
+      // Funcion lambda que hace like y animacion de cambiar el boton
+      // Mandamos message_id y user_id
+      var message_id = sessionStorage.getItem('tweet_id')
+      var user_id = sessionStorage.getItem('user_id')
+
+      var asd = $.get(
+        'https://ulopsuaamf4cxn5wit6dql67oq0levzf.lambda-url.us-east-1.on.aws/', {
+          method: 'like',
+          message_id: message_id,
+          user_id: user_id
+        },
+        function(data) {
+          function jsonEscape(str) {
+            return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
+          }
+          var json = data
+          result = json.res
+        }
+      ).done(function() {
+        if (result == 'ok') {
+          alert('Like realizado.')
+          // Animacion
+          // Animacion sin hacer
+
+        } else if (result == 'fail') {
+          alert('Error al realizar like.')
+        }
+      })
+    }
+
     $(document).ready(function() {
       setCurrentUser()
-      // setProfileData()
+      setProfileData()
+      setProfileTweets()
+
+      // Ahora necesitamos event listeners para los 
+      // $('#button-hidden').click(function() {
+      //   var tweet_id = sessionStorage.getItem("tweet_id");
+      //   var clicked = sessionStorage.getItem("clicked");
+      //   console.log(tweet_id);
+      //   console.log(clicked);
+      //   alert('tweet_id: ' + tweet_id + ' clicked: ' + clicked);
+      // })
+
     })
   </script>
 
@@ -232,10 +387,10 @@
     // dataTweet = {}
     // aqui tenemos el nombre, username y avatar
     // dataUser = {}
-    var urlBucket = "https://jdelgadowhatever.s3.amazonaws.com/";
-    var nombre = "";
+    // var urlBucket = "https://jdelgadowhatever.s3.amazonaws.com/";
+    // var nombre = "";
     var username = "";
-    var avatar = "";
+    // var avatar = "";
 
 
     class PlainTweet {
@@ -244,7 +399,8 @@
         this.username = username;
         this.datetime = datetime;
         this.text = text;
-        this.avatar = urlBucket + avatar;
+        // this.avatar = urlBucket + avatar;
+        this.avatar = avatar;
         this.user_id = user_id;
         this.tweet_id = tweet_id;
       }
@@ -285,7 +441,7 @@
               <div class="card-footer">
                 <div class="card-footer__button-group">
                   <div class="button-wrap--medium">
-                      <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'comments'); ">
+                      <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'comments'); handleClick();">
                         <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                           <g>
                             <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path>
@@ -295,7 +451,7 @@
                     <!-- <span class="button-count">15</span> -->
                   </div>
                   <div class="button-wrap--medium">
-                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'retweet'); ">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'retweet'); handleClick();">
                       <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                         <g>
                           <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path>
@@ -305,8 +461,8 @@
                     <!-- <span class="button-count">7</span> -->
                   </div>
                   <div class="button-wrap--medium">
-                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'like'); ">
-                      <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'like'); handleClick();">
+                      <svg id="like-icon" viewBox="0 0 24 24" class="button-icon fill-secondary">
                         <g>
                           <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path>
                         </g>
@@ -315,7 +471,7 @@
                     <!-- <span class="button-count">215</span> -->
                   </div>
                   <div class="button-wrap--medium">
-                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'bookmark'); ">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'bookmark'); handleClick();">
                       <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                         <g>
                           <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
@@ -338,10 +494,12 @@
         this.username = username;
         this.datetime = datetime;
         this.text = text;
-        this.avatar = urlBucket + avatar;
+        // this.avatar = urlBucket + avatar;
+        this.avatar = avatar;
         this.user_id = user_id;
         this.tweet_id = tweet_id;
-        this.adjunto = urlBucket + adjunto;
+        // this.adjunto = urlBucket + adjunto;
+        this.adjunto = adjunto;
       }
 
       render() {
@@ -383,7 +541,7 @@
               <div class="card-footer">
                 <div class="card-footer__button-group">
                   <div class="button-wrap--medium">
-                      <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'comments'); ">
+                      <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'comments'); handleClick();">
                         <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                           <g>
                             <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path>
@@ -393,7 +551,7 @@
                     <!-- <span class="button-count">15</span> -->
                   </div>
                   <div class="button-wrap--medium">
-                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'retweet'); ">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'retweet'); handleClick();">
                       <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                         <g>
                           <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path>
@@ -403,7 +561,7 @@
                     <!-- <span class="button-count">7</span> -->
                   </div>
                   <div class="button-wrap--medium">
-                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'like'); ">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'like'); handleClick();">
                       <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                         <g>
                           <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path>
@@ -413,7 +571,7 @@
                     <!-- <span class="button-count">215</span> -->
                   </div>
                   <div class="button-wrap--medium">
-                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'bookmark'); ">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'bookmark'); handleClick();">
                       <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                         <g>
                           <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
@@ -481,7 +639,7 @@
               <div class="card-footer">
                 <div class="card-footer__button-group">
                   <div class="button-wrap--medium">
-                      <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'comments'); ">
+                      <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'comments'); handleClick();">
                         <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                           <g>
                             <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z"></path>
@@ -491,7 +649,7 @@
                     <!-- <span class="button-count">15</span> -->
                   </div>
                   <div class="button-wrap--medium">
-                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'retweet'); ">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'retweet'); handleClick();">
                       <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                         <g>
                           <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z"></path>
@@ -501,7 +659,7 @@
                     <!-- <span class="button-count">7</span> -->
                   </div>
                   <div class="button-wrap--medium">
-                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'like'); ">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'like'); handleClick();">
                       <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                         <g>
                           <path d="M12 21.638h-.014C9.403 21.59 1.95 14.856 1.95 8.478c0-3.064 2.525-5.754 5.403-5.754 2.29 0 3.83 1.58 4.646 2.73.814-1.148 2.354-2.73 4.645-2.73 2.88 0 5.404 2.69 5.404 5.755 0 6.376-7.454 13.11-10.037 13.157H12zM7.354 4.225c-2.08 0-3.903 1.988-3.903 4.255 0 5.74 7.034 11.596 8.55 11.658 1.518-.062 8.55-5.917 8.55-11.658 0-2.267-1.823-4.255-3.903-4.255-2.528 0-3.94 2.936-3.952 2.965-.23.562-1.156.562-1.387 0-.014-.03-1.425-2.965-3.954-2.965z"></path>
@@ -511,7 +669,7 @@
                     <!-- <span class="button-count">215</span> -->
                   </div>
                   <div class="button-wrap--medium">
-                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'bookmark'); ">
+                    <button id="button-hidden" onclick="sessionStorage.setItem('tweet_id', ${this.tweet_id}); sessionStorage.setItem('clicked', 'bookmark'); handleClick();">
                       <svg viewBox="0 0 24 24" class="button-icon fill-secondary">
                         <g>
                           <path d="M19.9 23.5c-.157 0-.312-.05-.442-.144L12 17.928l-7.458 5.43c-.228.164-.53.19-.782.06-.25-.127-.41-.385-.41-.667V5.6c0-1.24 1.01-2.25 2.25-2.25h12.798c1.24 0 2.25 1.01 2.25 2.25v17.15c0 .282-.158.54-.41.668-.106.055-.223.082-.34.082zM12 16.25c.155 0 .31.048.44.144l6.71 4.883V5.6c0-.412-.337-.75-.75-.75H5.6c-.413 0-.75.338-.75.75v15.677l6.71-4.883c.13-.096.285-.144.44-.144z"></path>
@@ -717,7 +875,7 @@
             </div>
           </div>
           <div class="card-footer">
-            <button class="button--large button-filled text-bold mt-10 center" onclick="document.location.replace('editprofile.html')">Edit profile/Follow</button>
+            <button id="edit_profile_follow_button" class="button--large button-filled text-bold mt-10 center" onclick="document.location.replace('editprofile.html')">Edit profile/Follow</button>
           </div>
         </div>
       </div>
