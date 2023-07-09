@@ -12,122 +12,17 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
+  <script src="../js/get_users/setCurrentUser.js"></script>
+  <script src="../js/get_users/setProfileDataEdit.js"></script>
+
   <script>
-    // Tenemos que setCurrentUser, getProfileData
+    var user = sessionStorage.getItem('user')
+    var user_id = sessionStorage.getItem('user_id')
+    var avatar = sessionStorage.getItem('avatar')
+    var nombre = sessionStorage.getItem('name')
+    // var clicked_user_id = sessionStorage.getItem('clicked_user_id')
 
-
-    function setCurrentUser() {
-
-      alert('Obteniendo datos del usuario actual.')
-
-      var result = ''
-
-      // Lo vuelvo a obtener dentro, tengo que obtenerlo porque lo de arriba no se ejecuta
-      var avatar = sessionStorage.getItem('avatar')
-      var nombre = sessionStorage.getItem('name')
-      var user = sessionStorage.getItem('user')
-
-      // console.log(sessionStorage.getItem('avatar'))
-      // console.log(sessionStorage.getItem('name'))
-
-      if (sessionStorage.getItem('avatar') && sessionStorage.getItem('name')) {
-        document.getElementById("avatarCurrent").src = avatar;
-        document.getElementById("nameCurrent").innerHTML = nombre;
-        document.getElementById("usernameCurrent").innerHTML = "@" + user;
-        alert('Obteniendo avatar y nombre de caché.')
-        return
-      }
-
-      alert('Obteniendo avatar y nombre de la base de datos.')
-      var asd = $.get(
-        'https://g57gbf3yj5pwd3wt27zpa2viwu0ufnwy.lambda-url.us-east-1.on.aws/', {
-          method: 'get_user',
-          user_id: user_id
-        },
-        function(data) {
-          function jsonEscape(str) {
-            return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
-          }
-          var json = data
-          result = json.res
-          avatar = json.avatar
-          nombre = json.name
-        }
-      ).done(function() {
-        if (result == 'ok') {
-          // Asignamos
-          document.getElementById("avatarCurrent").src = avatar;
-          document.getElementById("nameCurrent").innerHTML = nombre;
-          document.getElementById("usernameCurrent").innerHTML = "@" + user;
-          // Ponerlos en Session Storage
-
-          sessionStorage.setItem('avatar', avatar)
-          sessionStorage.setItem('name', nombre)
-
-        } else if (result == 'fail') {
-          alert('Error.')
-        }
-      })
-
-    }
-
-    function setProfileDataEdit() {
-      var avatarProfile;
-      var nameProfile;
-      var bioProfile;
-      var dateProfile;
-      var usernameProfile;
-      var result;
-
-      // Boton editar vs follow
-      var user_id = sessionStorage.getItem('user_id')
-      // var clicked_user_id = sessionStorage.getItem('clicked_user_id')
-
-      // <button id="edit_profile_follow_button" class="button--large button-filled text-bold mt-10 center" onclick="document.location.replace('editprofile.html')">Edit profile/Follow</button>
-
-      // if (user_id == clicked_user_id) {
-      //   // Edit profile
-      //   document.getElementById('edit_profile_follow_button').innerHTML = 'Edit profile'
-      //   document.getElementById('edit_profile_follow_button').setAttribute('onclick', 'document.location.replace("editprofile.html")')
-      // } else {
-      //   // Follow
-      //   document.getElementById('edit_profile_follow_button').innerHTML = 'Follow'
-      //   document.getElementById('edit_profile_follow_button').setAttribute('onclick', 'handleFollow()')
-      // }
-
-      var asd = $.get(
-        'https://6i7lime5c42iizxg3p6thm4qdi0ebvrk.lambda-url.us-east-1.on.aws/', {
-          method: 'get-profile-data',
-          user_id: user_id
-        },
-        function(data) {
-          function jsonEscape(str) {
-            return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
-          }
-          var json = data
-          result = json.res
-          avatarProfile = json.profile.avatar
-          nameProfile = json.profile.name
-          bioProfile = json.profile.biography
-          dateProfile = json.profile.created_at
-          usernameProfile = json.profile.username
-        }
-      ).done(function() {
-        if (result == 'ok') {
-          alert('Datos del perfil obtenidos.')
-          // Cambiamos los datos del html
-          // Falta sumarle el urlBucket
-          $('#avatar-profile').attr('src', avatarProfile)
-          $('#name-profile').text(nameProfile)
-          $('#username-profile').text('@' + usernameProfile)
-          $('#date-profile').text('Cuenta creada el ' + dateProfile)
-          $('#bio-profile').text(bioProfile)
-          // alert('Datos del perfil obtenidos.')
-        } else if (result == 'fail') {
-          alert('Error al obtener datos del perfil.')
-        }
-      })
-    }
+    var urlBucket = 'http://twitter-clone-utad.s3.us-east-1.amazonaws.com/'
 
     function deactivateAccount() {
       alert('Desactivando cuenta. Sin implementar')
@@ -143,6 +38,55 @@
 
     function editAvatar() {
       alert('Editando avatar. Sin implementar')
+      // Cogerá el nombre, lo ofuscará y lo subirá a S3
+      // Despues lo subira a base de datos para cambiarlo
+    }
+
+    function getAWSKeys() {
+      var asd = $.get(
+        "https://7un4s6tfapjwovlixtvcc2ujrq0qazup.lambda-url.us-east-1.on.aws/", {},
+        function(data) {
+
+          var json = data;
+
+          document.getElementById("Policy").value = json.stringToSign;
+          document.getElementById("X-Amz-Credential").value = json.xAmzCredential;
+          document.getElementById("X-Amz-Date").value = json.amzDate;
+          document.getElementById("X-Amz-Signature").value = json.stringSigned;
+          document.getElementById("X-Amz-Security-Token").value = json.securityToken;
+
+        }
+      )
+
+    }
+
+    function ofuscarUrl(url) {
+      var fecha = Date.now();
+      return fecha + url;
+    }
+
+    function getType(name) {
+      var re = /(?:\.([^.]+))?$/;
+      var nameEx = re.exec(name)[1];
+      var type = "";
+      extensionsVideo = ["m4v", "avi", "mpg", "mp4", "webm"];
+      extensionsImage = ["jpg", "gif", "bmp", "png"];
+
+      for (var i = 0; i < extensionsVideo.length; i++) {
+        if (nameEx == extensionsVideo[i]) {
+          type = "video";
+        }
+      }
+      for (var i = 0; i < extensionsImage.length; i++) {
+        if (nameEx == extensionsImage[i]) {
+          type = "image";
+        }
+      }
+      if (type == "") {
+        alert("Tipo de archivo no soportado.");
+        return "None";
+      }
+      return type;
     }
 
     $(document).ready(function() {
@@ -153,7 +97,7 @@
 
 </head>
 
-<body>
+<body onload="getAWSKeys()">
   <div class="app-container">
 
     <header class="main-header">
@@ -310,15 +254,41 @@
           <button class="button--large button-filled text-bold mt-10" onclick="editBio()">Edit Bio</button>
         </div>
 
-        <div class="upload">
+        <!-- Upload image, igual que en Tweet -->
+        <!-- <div class="upload">
           <label for="file-upload" class="custom-file-upload">
             <i class="fa fa-cloud-upload"></i> Sube una imagen o video
           </label>
           <input id="file-upload" type="file" />
         </div>
+
         <div class="center-button">
           <button class="button--large button-filled text-bold mt-10" onclick="editAvatar()">Edit Avatar</button>
         </div>
+      </div> -->
+
+      <div class="upload">
+        <form action="http://twitter-clone-utad.s3.us-east-1.amazonaws.com/" method="post" enctype="multipart/form-data" onsubmit="sendTweet(event)">
+          <input type="hidden" id="X-Amz-Credential" name="X-Amz-Credential" value="" />
+          <input type="hidden" id="X-Amz-Date" name="X-Amz-Date" value="" />
+          <input type="hidden" id="Policy" name="Policy" value="" />
+          <input type="hidden" id="X-Amz-Signature" name="X-Amz-Signature" value="" />
+          <input type="hidden" id="key" name="key" value="fichero.sln" /><br />
+          <input type="hidden" name="acl" value="public-read" />
+          <input type="hidden" name="X-Amz-Algorithm" value="AWS4-HMAC-SHA256" />
+          <input type="hidden" id="X-Amz-Security-Token" name="X-Amz-Security-Token" value="" />
+          <label for="file" class="custom-file-upload">
+            <i class="fa fa-cloud-upload"></i> Sube una imagen o video
+          </label>
+          <input id="file" type="file" accept="video/mp4, image/png" name="file" onchange="previewMedia(event)" />
+
+          <!-- Prueba de preview Image/Video -->
+          <div id="mediaPreview" class="mediaPreview"></div>
+
+          <div class="publish-tweet">
+            <button type="submit" class="button--large button-filled text-bold mt-10" onclick="editAvatar(); document.location.replace('profile.html')">Editar Avatar</button>
+          </div>
+        </form>
       </div>
 
       <div id="space"></div>
