@@ -15,16 +15,20 @@
   <link href="https://vjs.zencdn.net/7.15.4/video-js.css" rel="stylesheet">
   <script src="https://vjs.zencdn.net/7.15.4/video.js"></script>
 
+  <script src="../js/get_users/setCurrentUser.js"></script>
+
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script> -->
 
   <script>
     // Aquí iría la función de obtener avatar y user a partir de id
-    var user = 'roberto'
-    // var user = sessionStorage.getItem('user')
-    var user_id = 19
-    // var user_id = sessionStorage.getItem('user_id')
+    // var user = 'roberto'
+    var user = sessionStorage.getItem('user')
+    // var user_id = 19
+    var user_id = sessionStorage.getItem('user_id')
     var nombre = sessionStorage.getItem('name')
     var avatar = sessionStorage.getItem('avatar')
+
+    var urlBucket = 'http://twitter-clone-utad.s3.us-east-1.amazonaws.com/'
 
     // CLAVE DE ENCRIPTACION PARA LAS OFUSCACIONES
     var claveEncriptacion = 'TGB&4qDg3I1#%H9uLKr'
@@ -146,7 +150,7 @@
         var fileInput = document.getElementById('file')
 
         // Le sumo la fecha para evitar colisiones, tiene que ser ahora o si no daría horas distintas
-        var fileName = document.getElementById("file").value.substring(document.getElementById("file").value.lastIndexOf('\\') + 1)
+        var fileName = document.getElementById("file").value.substring(document.getElementById("file").value.lastIndexOf('\\') + 1).trim()
         var selectedFile = fileInput.files[0]
         var fileType = getFileType(selectedFile)
         var fileNameOfuscated = ofuscarUrl(fileName)
@@ -264,49 +268,49 @@
     }
 
     // Deberiamos checkear si esta en sessionStorage antes de hacer la peticion
-    function setCurrentUser() {
+    // function setCurrentUser() {
 
-      // console.log(sessionStorage.getItem('avatar'))
-      // console.log(sessionStorage.getItem('name'))
+    //   // console.log(sessionStorage.getItem('avatar'))
+    //   // console.log(sessionStorage.getItem('name'))
 
-      if (sessionStorage.getItem('avatar') != null && sessionStorage.getItem('name') != null) {
-        document.getElementById("avatarCurrent").src = avatar;
-        document.getElementById("nameCurrent").innerHTML = nombre;
-        document.getElementById("usernameCurrent").innerHTML = "@" + user;
-        return
-      }
+    //   if (sessionStorage.getItem('avatar') != null && sessionStorage.getItem('name') != null) {
+    //     document.getElementById("avatarCurrent").src = avatar;
+    //     document.getElementById("nameCurrent").innerHTML = nombre;
+    //     document.getElementById("usernameCurrent").innerHTML = "@" + user;
+    //     return
+    //   }
 
-      var asd = $.get(
-        'https://g57gbf3yj5pwd3wt27zpa2viwu0ufnwy.lambda-url.us-east-1.on.aws/', {
-          method: 'get_user',
-          user_id: user_id
-        },
-        function(data) {
-          function jsonEscape(str) {
-            return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
-          }
-          var json = data
-          result = json.res
-          avatar = json.avatar
-          nombre = json.name
-        }
-      ).done(function() {
-        if (result == 'ok') {
-          // Asignamos
-          document.getElementById("avatarCurrent").src = avatar;
-          document.getElementById("nameCurrent").innerHTML = nombre;
-          document.getElementById("usernameCurrent").innerHTML = "@" + user;
-          // Ponerlos en Session Storage
+    //   var asd = $.get(
+    //     'https://g57gbf3yj5pwd3wt27zpa2viwu0ufnwy.lambda-url.us-east-1.on.aws/', {
+    //       method: 'get_user',
+    //       user_id: user_id
+    //     },
+    //     function(data) {
+    //       function jsonEscape(str) {
+    //         return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
+    //       }
+    //       var json = data
+    //       result = json.res
+    //       avatar = json.avatar
+    //       nombre = json.name
+    //     }
+    //   ).done(function() {
+    //     if (result == 'ok') {
+    //       // Asignamos
+    //       document.getElementById("avatarCurrent").src = urlBucket +  avatar;
+    //       document.getElementById("nameCurrent").innerHTML = nombre;
+    //       document.getElementById("usernameCurrent").innerHTML = "@" + user;
+    //       // Ponerlos en Session Storage
 
-          sessionStorage.setItem('avatar', avatar)
-          sessionStorage.setItem('name', nombre)
+    //       sessionStorage.setItem('avatar', avatar)
+    //       sessionStorage.setItem('name', nombre)
 
-        } else if (result == 'fail') {
-          alert('Error.')
-        }
-      })
+    //     } else if (result == 'fail') {
+    //       alert('Error.')
+    //     }
+    //   })
 
-    }
+    // }
 
     // Aqui lo que se ejecuta siempre, el getCurrentUser puede ir en el body onload
 

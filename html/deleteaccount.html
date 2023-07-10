@@ -15,8 +15,32 @@
 <script>
     $(document).ready(function() {
         const user = sessionStorage.getItem('user')
+        var result;
+
+        // Queda en standby
+        // var asd = $.get('',
+        // {
+        //   'method': 'delete_account',
+        //   'user': user
+        // },
+        // function(data) {
+        //   function jsonEscape(str)  {
+        //     return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t");
+        //   }
+        //   var json = data
+        //   result = json.res
+        // }).done(function() {
+        //   if (result == 'ok') {
+        //     const message = 'Lo sentimos ' + user + ', tu cuenta ha sido eliminada.'
+        //     $('#elimination_message').text(message)
+        //   } else {
+        //     return
+        //   }
+        // })
+
         const message = 'Lo sentimos ' + user + ', tu cuenta ha sido eliminada.'
         $('#elimination_message').text(message)
+        
     })
 </script>
 

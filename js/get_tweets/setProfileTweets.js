@@ -48,21 +48,21 @@ function setProfileTweets(avatar, user_id) {
       if (tweets[i].attachment_id == null) {
         console.log("Creamos tweet " + i + " sin attachment");
         console.log("iteracion " + i + "");
-        console.log(
-          nombre,
-          user,
-          tweets[i].created_at,
-          tweets[i].message,
-          avatar,
-          user_id,
-          tweets[i].message_id
-        );
+        // console.log(
+        //   nombre,
+        //   user,
+        //   tweets[i].created_at,
+        //   tweets[i].message,
+        //   avatar,
+        //   user_id,
+        //   tweets[i].message_id
+        // );
         var myTweet = new PlainTweet(
           nombre,
           user,
           tweets[i].created_at,
           tweets[i].message,
-          avatar,
+          urlBucket + avatar,
           user_id,
           tweets[i].message_id
         );
@@ -88,7 +88,7 @@ function setProfileTweets(avatar, user_id) {
             var json = data;
             result = json.res;
             // Ojo hay que sumarle la url del bucket para conseguir la url completa
-            url = urlBucket + json.attachment.url;
+            url = json.attachment.url;
             type = json.attachment.type;
             console.log(url, type);
           }
@@ -99,25 +99,25 @@ function setProfileTweets(avatar, user_id) {
               console.log("image");
               console.log("iteracion2 " + i + "");
               console.log(tweets[i]);
-              console.log(
-                nombre,
-                user,
-                tweets[i].created_at,
-                tweets[i].message,
-                avatar,
-                user_id,
-                tweets[i].message_id,
-                url
-              );
+              // console.log(
+              //   nombre,
+              //   user,
+              //   tweets[i].created_at,
+              //   tweets[i].message,
+              //   avatar,
+              //   user_id,
+              //   tweets[i].message_id,
+              //   url
+              // );
               var myTweet = new ImageTweet(
                 nombre,
                 user,
                 tweets[i].created_at,
                 tweets[i].message,
-                avatar,
+                urlBucket + avatar,
                 user_id,
                 tweets[i].message_id,
-                url
+                urlBucket + url
               );
               document.getElementById("tweet-" + i).innerHTML =
                 myTweet.render();
@@ -128,7 +128,7 @@ function setProfileTweets(avatar, user_id) {
                 user,
                 tweets[i].created_at,
                 tweets[i].message,
-                avatar,
+                urlBucket + avatar,
                 user_id,
                 tweets[i].message_id,
                 url

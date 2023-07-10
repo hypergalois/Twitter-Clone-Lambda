@@ -29,17 +29,146 @@
     }
 
     function editName() {
-      alert('Editando nombre. Sin implementar')
+      // alert('Editando nombre. Sin implementar')
+      var name = document.getElementById('name').value
+
+      var result;
+
+      var asd = $.get('https://pzbpsicbuvag3hmbci2meejcuy0oeunu.lambda-url.us-east-1.on.aws/',
+      {
+        'method': 'edit-name',
+        'user_id': user_id,
+        'name': name
+      },
+      function(data) {
+        function jsonEscape(str) {
+              return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
+            }
+        var json = data
+        result = json.res
+      }
+      ).done(function() {
+        if (result == 'ok') {
+          alert('Nombre editado correctamente')
+          window.location.replace('profile.html')
+        } else {
+          alert('Error al editar el nombre')
+        }
+      })
     }
 
     function editBio() {
-      alert('Editando bio. Sin implementar')
+      // alert('Editando bio. Sin implementar')
+      var bio = document.getElementById('bio').value
+
+      var result;
+
+      var asd = $.get('https://lvtgw3cbi3nfhc422rrxw2iqsu0vwzlf.lambda-url.us-east-1.on.aws/',
+      {
+        'method': 'edit-bio',
+        'user_id': user_id,
+        'bio': bio
+      },
+      function(data) {
+        function jsonEscape(str) {
+              return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
+            }
+        var json = data
+        result = json.res
+        console.log(result)
+      }).done(function() {
+        if (result == 'ok') {
+          alert('Bio editada correctamente')
+          window.location.replace('profile.html')
+        } else {
+          alert('Error al editar la bio')
+        }
+      })
+    }
+
+    function previewMedia(event) {
+      var fileInput = event.target
+      var mediaPreview = document.getElementById('mediaPreview')
+
+      // Verificamos que se ha seleccionado un archivo
+      if (fileInput.files && fileInput.files[0]) {
+        var reader = new FileReader()
+
+        reader.onload = function(e) {
+          // Creamos elemento imagen o video dependiendo
+          var media;
+          if (fileInput.files[0].type.includes('image')) {
+            media = document.createElement('img')
+
+          } else if (fileInput.files[0].type.includes('video')) {
+            media = document.createElement('video')
+            media.controls = true
+
+          } else {
+            // Archivo no válido
+            mediaPreview.innerHTML = 'Archivo no válido'
+            return;
+          }
+
+          media.src = e.target.result
+          media.height = 200
+          media.width = 350
+
+          mediaPreview.innerHTML = ''
+          mediaPreview.appendChild(media)
+        }
+
+        reader.readAsDataURL(fileInput.files[0])
+
+      } else {
+        mediaPreview.innerHTML = ''
+      }
     }
 
     function editAvatar() {
-      alert('Editando avatar. Sin implementar')
+      // alert('Editando avatar. Sin implementar')
       // Cogerá el nombre, lo ofuscará y lo subirá a S3
       // Despues lo subira a base de datos para cambiarlo
+      var fileInput = document.getElementById('file')
+
+      if (fileInput.files.length == 0) {
+        alert('Por favor, selecciona un archivo.')
+        return false
+      }
+
+      var result;
+
+      var fileInput = document.getElementById('file')
+
+      var fileName = document.getElementById("file").value.substring(document.getElementById("file").value.lastIndexOf('\\') + 1).trim()
+      var selectedFile = fileInput.files[0]
+      var fileNameOfuscated = ofuscarUrl(fileName)
+
+      alert(fileName)
+      alert(fileNameOfuscated)
+
+      document.getElementById('key').value = fileNameOfuscated
+
+      var asd = $.get('https://vw4djt2ntkahqwe6orbdxhe4mm0unrza.lambda-url.us-east-1.on.aws/',
+      {
+        'method': 'edit-avatar',
+        'user_id': user_id,
+        'file_name': fileNameOfuscated
+      },
+      function(data) {
+        function jsonEscape(str) {
+              return str.replace(/\n/g, "\\\\n").replace(/\r/g, "\\\\r").replace(/\t/g, "\\\\t").replace(/\\/g, "");
+            }
+        var json = data
+        result = json.res
+      }).done(function(data) {
+        if (result == 'ok') {
+          alert('Avatar editado correctamente')
+          window.location.replace('profile.html')
+        } else {
+          alert('Error al editar el avatar')
+        }
+      })
     }
 
     function getAWSKeys() {
@@ -241,14 +370,14 @@
 
       <div class="centrar-inputs">
         <div class="center-input">
-          <input type="text" class="text-input" placeholder="Name" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input id="name" type="text" class="text-input" placeholder="Name" autocomplete="off" autocorrect="off" spellcheck="false">
         </div>
         <div class="center-button">
           <button class="button--large button-filled text-bold mt-10" onclick="editName()">Edit Name</button>
         </div>
 
         <div class="center-input">
-          <input type="text" class="text-input" placeholder="Bio" autocomplete="off" autocorrect="off" spellcheck="false">
+          <input id="bio" type="text" class="text-input" placeholder="Bio" autocomplete="off" autocorrect="off" spellcheck="false">
         </div>
         <div class="center-button">
           <button class="button--large button-filled text-bold mt-10" onclick="editBio()">Edit Bio</button>
@@ -268,7 +397,7 @@
       </div> -->
 
       <div class="upload">
-        <form action="http://twitter-clone-utad.s3.us-east-1.amazonaws.com/" method="post" enctype="multipart/form-data" onsubmit="sendTweet(event)">
+        <form action="http://twitter-clone-utad.s3.us-east-1.amazonaws.com/" method="post" enctype="multipart/form-data" onsubmit="editAvatar(event)">
           <input type="hidden" id="X-Amz-Credential" name="X-Amz-Credential" value="" />
           <input type="hidden" id="X-Amz-Date" name="X-Amz-Date" value="" />
           <input type="hidden" id="Policy" name="Policy" value="" />
@@ -278,15 +407,15 @@
           <input type="hidden" name="X-Amz-Algorithm" value="AWS4-HMAC-SHA256" />
           <input type="hidden" id="X-Amz-Security-Token" name="X-Amz-Security-Token" value="" />
           <label for="file" class="custom-file-upload">
-            <i class="fa fa-cloud-upload"></i> Sube una imagen o video
+            <i class="fa fa-cloud-upload"></i> Sube una imagen
           </label>
-          <input id="file" type="file" accept="video/mp4, image/png" name="file" onchange="previewMedia(event)" />
+          <input id="file" type="file" accept="image/png" name="file" onchange="previewMedia(event)" />
 
           <!-- Prueba de preview Image/Video -->
           <div id="mediaPreview" class="mediaPreview"></div>
 
           <div class="publish-tweet">
-            <button type="submit" class="button--large button-filled text-bold mt-10" onclick="editAvatar(); document.location.replace('profile.html')">Editar Avatar</button>
+            <button type="submit" class="button--large button-filled text-bold mt-10" onclick="document.location.replace('profile.html')">Editar Avatar</button>
           </div>
         </form>
       </div>

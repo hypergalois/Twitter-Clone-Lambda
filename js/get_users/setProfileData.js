@@ -6,6 +6,8 @@ function setProfileData() {
   var usernameProfile;
   var result;
 
+  var urlBucket = 'http://twitter-clone-utad.s3.us-east-1.amazonaws.com/'
+
   // Boton editar vs follow
   var user_id = sessionStorage.getItem("user_id");
   var clicked_user_id = sessionStorage.getItem("clicked_user_id");
@@ -53,7 +55,7 @@ function setProfileData() {
     if (result == "ok") {
       // Cambiamos los datos del html
       // Falta sumarle el urlBucket
-      $("#avatar-profile").attr("src", avatarProfile);
+      $("#avatar-profile").attr("src", urlBucket + avatarProfile);
       $("#name-profile").text(nameProfile);
       $("#username-profile").text("@" + usernameProfile);
       $("#date-profile").text("Cuenta creada el " + dateProfile);

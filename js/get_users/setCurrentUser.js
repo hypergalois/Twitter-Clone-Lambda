@@ -8,8 +8,10 @@ function setCurrentUser() {
   // console.log(sessionStorage.getItem('avatar'))
   // console.log(sessionStorage.getItem('name'))
 
+  var urlBucket = 'http://twitter-clone-utad.s3.us-east-1.amazonaws.com/'
+
   if (sessionStorage.getItem("avatar") && sessionStorage.getItem("name")) {
-    document.getElementById("avatarCurrent").src = avatar;
+    document.getElementById("avatarCurrent").src = urlBucket + avatar;
     document.getElementById("nameCurrent").innerHTML = nombre;
     document.getElementById("usernameCurrent").innerHTML = "@" + user;
     alert("Obteniendo avatar y nombre de caché.");
@@ -38,7 +40,7 @@ function setCurrentUser() {
   ).done(function () {
     if (result == "ok") {
       // Asignamos
-      document.getElementById("avatarCurrent").src = avatar;
+      document.getElementById("avatarCurrent").src = urlBucket + avatar;
       document.getElementById("nameCurrent").innerHTML = nombre;
       document.getElementById("usernameCurrent").innerHTML = "@" + user;
       // Ponerlos en Session Storage

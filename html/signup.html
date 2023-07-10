@@ -63,8 +63,10 @@
           if (resultado == 'ok') {
             alert('Registrado con éxito')
             sessionStorage.setItem('user', user)
-            sessionStorage.setItem('id_user', id_user)
-            window.location.replace('home.html')
+            sessionStorage.setItem('user_id', id_user)
+            // Por defecto
+            sessionStorage.setItem('clicked_user_id', id_user)
+            window.location.replace('community.html')
           } else {
             if (error == 'userExists') {
               alert('Ese nombre de usuario ya está ocupado.')

@@ -46,8 +46,9 @@
           if (result == 'ok') {
             alert('Bienvenido a Twitter')
             sessionStorage.setItem('triesRemaining', 3)
-            sessionStorage.setItem('username', user)
-            sessionStorage.setItem('id_user', id_user)
+            sessionStorage.setItem('user', user)
+            sessionStorage.setItem('user_id', id_user)
+            sessionStorage.setItem('clicked_user_id', id_user)
             window.location.replace('home.html')
           } else if (result == 'fail') {
             if (error == 'userNotExists') {
@@ -59,13 +60,13 @@
               const triesRemaining = sessionStorage.getItem('triesRemaining')
 
               switch (triesRemaining) {
-                case 1:
+                case '1':
                   alert('La próxima vez que falles tu cuenta será eliminada.')
                   break
-                case 0:
+                case '0':
                   alert('Tu cuenta ha sido eliminada.')
                   sessionStorage.setItem('triesRemaining', 3)
-                  sessionStorage.setItem('username', user)
+                  sessionStorage.setItem('user', user)
                   window.location.replace('deleteaccount.html')
                   break
                 default:

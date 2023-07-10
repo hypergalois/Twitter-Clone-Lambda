@@ -69,7 +69,7 @@ function setCommunityTweets(avatar, user_id) {
         }
       ).done(function () {
         if (result == "ok") {
-          alert("Usuario cargado correctamente.");
+          // alert("Usuario cargado correctamente.");
           avatar = profile.avatar;
           user = profile.username;
           nombre = profile.name;

@@ -22,6 +22,8 @@ function setProfileDataEdit() {
   //   document.getElementById('edit_profile_follow_button').setAttribute('onclick', 'handleFollow()')
   // }
 
+  var urlBucket = 'http://twitter-clone-utad.s3.us-east-1.amazonaws.com/'
+
   var asd = $.get(
     "https://6i7lime5c42iizxg3p6thm4qdi0ebvrk.lambda-url.us-east-1.on.aws/",
     {
@@ -38,7 +40,7 @@ function setProfileDataEdit() {
       }
       var json = data;
       result = json.res;
-      avatarProfile = json.profile.avatar;
+      avatarProfile = urlBucket + json.profile.avatar;
       nameProfile = json.profile.name;
       bioProfile = json.profile.biography;
       dateProfile = json.profile.created_at;
